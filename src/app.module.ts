@@ -21,6 +21,14 @@ import { CountriesWorldModule } from './countries-world/countries-world.module';
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
+      ssl: {
+        rejectUnauthorized: false
+      },
+      extra: {
+        ssl: {
+          rejectUnauthorized: false
+        }
+      },
       logging: true,
     }),
     UsersModule,
@@ -30,4 +38,4 @@ import { CountriesWorldModule } from './countries-world/countries-world.module';
     CountriesWorldModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }
