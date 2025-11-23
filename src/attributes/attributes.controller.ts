@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Put, Query } from '@nestjs/common';
 import { AttributesService } from './attributes.service';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { UpdateAttributeDto } from './dto/update-attribute.dto';
+import { ReorderAttributesDto } from './dto/reorder-attributes.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, UserRole } from '../common/decorators/roles.decorator';
@@ -13,29 +15,58 @@ export class AttributesController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  create(@Body() createAttributeDto: CreateAttributeDto) {
-    return this.attributesService.create(createAttributeDto);
+  async create(@Body() createAttributeDto: CreateAttributeDto) {
+    const data = await this.attributesService.create(createAttributeDto);
+    return {
+      data,
+      message: 'Attribute created successfully'
+    };
+  }
+
+  @Post('reorder')
+  @Roles(UserRole.ADMIN)
+  async reorder(@Body() reorderAttributesDto: ReorderAttributesDto) {
+    const data = await this.attributesService.reorder(reorderAttributesDto);
+    return {
+      data,
+      message: 'Attributes reordered successfully'
+    };
   }
 
   @Get()
-  findAll() {
-    return this.attributesService.findAll();
+  async findAll(@Query() queryDto: PaginationQueryDto) {
+    const result = await this.attributesService.findAll(queryDto);
+    return {
+      ...result,
+      message: 'Attributes retrieved successfully'
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.attributesService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.attributesService.findOne(+id);
+    return {
+      data,
+      message: 'Attribute retrieved successfully'
+    };
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  update(@Param('id') id: string, @Body() updateAttributeDto: UpdateAttributeDto) {
-    return this.attributesService.update(+id, updateAttributeDto);
+  async update(@Param('id') id: string, @Body() updateAttributeDto: UpdateAttributeDto) {
+    const data = await this.attributesService.update(+id, updateAttributeDto);
+    return {
+      data,
+      message: 'Attribute updated successfully'
+    };
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.attributesService.remove(+id);
+  async remove(@Param('id') id: string) {
+    await this.attributesService.remove(+id);
+    return {
+      message: 'Attribute deleted successfully'
+    };
   }
 }

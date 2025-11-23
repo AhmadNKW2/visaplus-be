@@ -1,4 +1,4 @@
-import { IsNumber, IsNotEmpty, IsOptional, IsArray, ValidateNested, IsString } from 'class-validator';
+import { IsNumber, IsNotEmpty, IsOptional, IsArray, ValidateNested, IsString, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CountryAttributeDto {
@@ -13,6 +13,10 @@ export class CountryAttributeDto {
   @IsString()
   @IsNotEmpty()
   value_ar: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  isActive: boolean;
 }
 
 export class CreateCountryDto {

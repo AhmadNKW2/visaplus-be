@@ -1,14 +1,16 @@
 const axios = require('axios');
 const { DataSource } = require('typeorm');
+require('dotenv').config();
 
-// Database configuration - update with your credentials
+// Database configuration - uses credentials from .env file
 const AppDataSource = new DataSource({
   type: 'postgres',
-  host: 'localhost',
-  port: 5432,
-  username: 'postgres',
-  password: '1953',
-  database: 'visaplus',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl: process.env.DB_HOST.includes('neon.tech') ? { rejectUnauthorized: false } : false,
   synchronize: false,
   logging: true,
 });

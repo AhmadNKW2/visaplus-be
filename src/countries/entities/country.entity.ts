@@ -10,6 +10,9 @@ export class Country {
   @Column({ name: 'country_world_id' })
   countryWorldId: number;
 
+  @Column({ default: 0 })
+  order: number;
+
   @ManyToOne(() => CountryWorld)
   @JoinColumn({ name: 'country_world_id' })
   countryWorld: CountryWorld;

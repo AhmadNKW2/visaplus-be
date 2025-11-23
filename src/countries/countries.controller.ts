@@ -7,10 +7,13 @@ import {
   Param, 
   Delete, 
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { CountriesService } from './countries.service';
 import { CreateCountryDto } from './dto/create-country.dto';
 import { UpdateCountryDto } from './dto/update-country.dto';
+import { ReorderCountriesDto } from './dto/reorder-countries.dto';
+import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, UserRole } from '../common/decorators/roles.decorator';
@@ -22,29 +25,58 @@ export class CountriesController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  create(@Body() createCountryDto: CreateCountryDto) {
-    return this.countriesService.create(createCountryDto);
+  async create(@Body() createCountryDto: CreateCountryDto) {
+    const data = await this.countriesService.create(createCountryDto);
+    return {
+      data,
+      message: 'Country created successfully'
+    };
+  }
+
+  @Post('reorder')
+  @Roles(UserRole.ADMIN)
+  async reorder(@Body() reorderCountriesDto: ReorderCountriesDto) {
+    const data = await this.countriesService.reorder(reorderCountriesDto);
+    return {
+      data,
+      message: 'Countries reordered successfully'
+    };
   }
 
   @Get()
-  findAll() {
-    return this.countriesService.findAll();
+  async findAll(@Query() queryDto: PaginationQueryDto) {
+    const result = await this.countriesService.findAll(queryDto);
+    return {
+      ...result,
+      message: 'Countries retrieved successfully'
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.countriesService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.countriesService.findOne(+id);
+    return {
+      data,
+      message: 'Country retrieved successfully'
+    };
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  update(@Param('id') id: string, @Body() updateCountryDto: UpdateCountryDto) {
-    return this.countriesService.update(+id, updateCountryDto);
+  async update(@Param('id') id: string, @Body() updateCountryDto: UpdateCountryDto) {
+    const data = await this.countriesService.update(+id, updateCountryDto);
+    return {
+      data,
+      message: 'Country updated successfully'
+    };
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.countriesService.remove(+id);
+  async remove(@Param('id') id: string) {
+    await this.countriesService.remove(+id);
+    return {
+      message: 'Country deleted successfully'
+    };
   }
 }

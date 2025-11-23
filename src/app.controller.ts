@@ -6,12 +6,18 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getHello() {
+    return {
+      data: this.appService.getHello(),
+      message: 'Welcome to VisaPlus API'
+    };
   }
 
   @Get('health')
   getHealth() {
-    return this.appService.getHealth();
+    return {
+      data: this.appService.getHealth(),
+      message: 'Server is healthy'
+    };
   }
 }

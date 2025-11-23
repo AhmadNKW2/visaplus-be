@@ -13,31 +13,50 @@ export class CountriesWorldController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  create(@Body() createCountryWorldDto: CreateCountryWorldDto) {
-    return this.countriesWorldService.create(createCountryWorldDto);
+  async create(@Body() createCountryWorldDto: CreateCountryWorldDto) {
+    const data = await this.countriesWorldService.create(createCountryWorldDto);
+    return {
+      data,
+      message: 'World country created successfully'
+    };
   }
 
   @Get()
-  findAll() {
-    return this.countriesWorldService.findAll();
+  async findAll() {
+    const data = await this.countriesWorldService.findAll();
+    return {
+      data,
+      message: 'World countries retrieved successfully'
+    };
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.countriesWorldService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const data = await this.countriesWorldService.findOne(+id);
+    return {
+      data,
+      message: 'World country retrieved successfully'
+    };
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  update(@Param('id') id: string, @Body() updateCountryWorldDto: UpdateCountryWorldDto) {
-    return this.countriesWorldService.update(+id, updateCountryWorldDto);
+  async update(@Param('id') id: string, @Body() updateCountryWorldDto: UpdateCountryWorldDto) {
+    const data = await this.countriesWorldService.update(+id, updateCountryWorldDto);
+    return {
+      data,
+      message: 'World country updated successfully'
+    };
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.countriesWorldService.remove(+id);
+  async remove(@Param('id') id: string) {
+    await this.countriesWorldService.remove(+id);
+    return {
+      message: 'World country deleted successfully'
+    };
   }
 }

@@ -26,16 +26,24 @@ export class UsersController {
   @Get()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    const data = await this.usersService.findAll();
+    return {
+      data,
+      message: 'Users retrieved successfully'
+    };
   }
 
   // Get one user (Admin only)
   @Get(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
-  findOne(@Param('id') id: number) {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id') id: number) {
+    const data = await this.usersService.findOne(id);
+    return {
+      data,
+      message: 'User retrieved successfully'
+    };
   }
 
   // Note: updating users via PATCH removed per project requirements
@@ -44,7 +52,10 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(UserRole.ADMIN)
-  remove(@Param('id') id: number) {
-    return this.usersService.remove(id);
+  async remove(@Param('id') id: number) {
+    await this.usersService.remove(id);
+    return {
+      message: 'User deleted successfully'
+    };
   }
 }

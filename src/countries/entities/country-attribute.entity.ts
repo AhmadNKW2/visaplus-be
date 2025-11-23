@@ -27,6 +27,9 @@ export class CountryAttribute {
   @Column({ name: 'value_ar', type: 'text', nullable: true })
   value_ar: string;
 
+  @Column({ name: 'is_active', default: true })
+  isActive: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

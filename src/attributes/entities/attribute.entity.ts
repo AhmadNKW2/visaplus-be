@@ -11,6 +11,9 @@ export class Attribute {
   @Column({ name: 'name_ar', length: 100, nullable: true })
   name_ar: string;
 
+  @Column({ name: 'order', unique: true })
+  order: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

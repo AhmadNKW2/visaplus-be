@@ -13,13 +13,21 @@ export class AuthController {
     // POST /auth/register
     @Post('register')
     async register(@Body() registerDto: RegisterDto) {
-        return this.authService.register(registerDto);
+        const result = await this.authService.register(registerDto);
+        return {
+            ...result,
+            message: 'User registered successfully'
+        };
     }
 
     // POST /auth/login
     @Post('login')
     async login(@Body() loginDto: LoginDto) {
-        return this.authService.login(loginDto);
+        const result = await this.authService.login(loginDto);
+        return {
+            ...result,
+            message: 'User logged in successfully'
+        };
     }
 
     // POST /auth/logout - Protected route (requires JWT token)
@@ -30,7 +38,7 @@ export class AuthController {
         // Client should remove the token from storage
         // This endpoint can be used for logging or additional cleanup if needed
         return {
-            message: 'Logged out successfully',
+            message: 'User logged out successfully',
             userId: req.user.id,
         };
     }
@@ -40,12 +48,20 @@ export class AuthController {
     // POST /auth/forgot-password
     @Post('forgot-password')
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-        return this.authService.forgotPassword(forgotPasswordDto);
+        const result = await this.authService.forgotPassword(forgotPasswordDto);
+        return {
+            ...result,
+            message: 'Password reset email sent successfully'
+        };
     }
 
     // POST /auth/reset-password
     @Post('reset-password')
     async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-        return this.authService.resetPassword(resetPasswordDto);
+        const result = await this.authService.resetPassword(resetPasswordDto);
+        return {
+            ...result,
+            message: 'Password reset successfully'
+        };
     }
 }
