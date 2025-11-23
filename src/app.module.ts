@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { AttributesModule } from './attributes/attributes.module';
 import { CountriesModule } from './countries/countries.module';
 import { CountriesWorldModule } from './countries-world/countries-world.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -37,5 +39,7 @@ import { CountriesWorldModule } from './countries-world/countries-world.module';
     CountriesModule,
     CountriesWorldModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule { }
