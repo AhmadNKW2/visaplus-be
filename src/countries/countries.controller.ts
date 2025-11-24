@@ -19,11 +19,11 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, UserRole } from '../common/decorators/roles.decorator';
 
 @Controller('countries')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class CountriesController {
   constructor(private readonly countriesService: CountriesService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async create(@Body() createCountryDto: CreateCountryDto) {
     const data = await this.countriesService.create(createCountryDto);
@@ -34,6 +34,7 @@ export class CountriesController {
   }
 
   @Post('reorder')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async reorder(@Body() reorderCountriesDto: ReorderCountriesDto) {
     const data = await this.countriesService.reorder(reorderCountriesDto);
@@ -62,6 +63,7 @@ export class CountriesController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async update(@Param('id') id: string, @Body() updateCountryDto: UpdateCountryDto) {
     const data = await this.countriesService.update(+id, updateCountryDto);
@@ -72,6 +74,7 @@ export class CountriesController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async remove(@Param('id') id: string) {
     await this.countriesService.remove(+id);
