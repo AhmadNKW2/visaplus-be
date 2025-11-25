@@ -11,7 +11,8 @@ import { ApiResponse } from '../interfaces/api-response.interface';
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>> {
-    const now = new Date().toISOString();
+    // Add 3 hours for Jordan time
+    const now = new Date(new Date().getTime() + (3 * 60 * 60 * 1000)).toISOString();
 
     return next.handle().pipe(
       map((data) => {

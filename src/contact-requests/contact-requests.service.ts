@@ -96,8 +96,13 @@ export class ContactRequestsService {
       const sortFields = sort.split(',');
       sortFields.forEach((field) => {
         const [key, order] = field.split(':');
-        // Convert camelCase to snake_case
-        const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+        
+        // Handle special sort keys
+        let snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+        if (snakeKey === 'date') {
+          snakeKey = 'created_at';
+        }
+        
         queryBuilder.addOrderBy(`contact_request.${snakeKey}`, order.toUpperCase() as 'ASC' | 'DESC');
       });
     } else {

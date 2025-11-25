@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Transform } from 'class-transformer';
 
 @Entity('contact_requests')
 export class ContactRequest {
@@ -24,8 +25,10 @@ export class ContactRequest {
   destination_country: string;
 
   @CreateDateColumn()
+  @Transform(({ value }) => value && new Date(value.getTime() + (3 * 60 * 60 * 1000)))
   created_at: Date;
 
   @UpdateDateColumn()
+  @Transform(({ value }) => value && new Date(value.getTime() + (3 * 60 * 60 * 1000)))
   updated_at: Date;
 }

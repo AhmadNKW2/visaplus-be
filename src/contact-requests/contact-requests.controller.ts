@@ -8,6 +8,8 @@ import {
   Delete,
   UseGuards,
   Query,
+  UseInterceptors,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { ContactRequestsService } from './contact-requests.service';
 import { CreateContactRequestDto } from './dto/create-contact-request.dto';
@@ -18,6 +20,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles, UserRole } from '../common/decorators/roles.decorator';
 
 @Controller('contact-requests')
+@UseInterceptors(ClassSerializerInterceptor)
 export class ContactRequestsController {
   constructor(private readonly contactRequestsService: ContactRequestsService) {}
 
