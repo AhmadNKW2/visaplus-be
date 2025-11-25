@@ -1,11 +1,12 @@
 import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User, UserRole } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FilterUserDto } from './dto/filter-user.dto';
+import { normalizeArabicForSearch } from '../common/utils/arabic-search.util';
 
 @Injectable()
 export class UsersService {
@@ -53,12 +54,25 @@ export class UsersService {
             queryBuilder.andWhere('user.isActive = :isActive', { isActive });
         }
 
-        // Search
+        // Search with Arabic normalization
         if (search) {
-            queryBuilder.andWhere(
-                '(user.email ILIKE :search OR user.firstName ILIKE :search OR user.lastName ILIKE :search)',
-                { search: `%${search}%` }
-            );
+            const normalizedSearch = normalizeArabicForSearch(search);
+            
+            queryBuilder.andWhere(new Brackets(qb => {
+                // Search in English fields (case-insensitive)
+                qb.where('user.email ILIKE :search', { search: `%${search}%` })
+                  .orWhere('user.firstName ILIKE :search', { search: `%${search}%` })
+                  .orWhere('user.lastName ILIKE :search', { search: `%${search}%` });
+                
+                // Search in Arabic fields with normalization
+                qb.orWhere(
+                    `REPLACE(REPLACE(REPLACE(user.firstName, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا') ILIKE :normalizedSearch`,
+                    { normalizedSearch: `%${normalizedSearch}%` }
+                ).orWhere(
+                    `REPLACE(REPLACE(REPLACE(user.lastName, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا') ILIKE :normalizedSearch`,
+                    { normalizedSearch: `%${normalizedSearch}%` }
+                );
+            }));
         }
 
         // Sorting

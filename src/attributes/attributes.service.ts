@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { Attribute } from './entities/attribute.entity';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { UpdateAttributeDto } from './dto/update-attribute.dto';
 import { ReorderAttributesDto } from './dto/reorder-attributes.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { normalizeArabicForSearch } from '../common/utils/arabic-search.util';
 
 @Injectable()
 export class AttributesService {
@@ -36,12 +37,20 @@ export class AttributesService {
     
     const queryBuilder = this.attributesRepository.createQueryBuilder('attribute');
 
-    // Apply search
+    // Apply search with Arabic normalization
     if (search) {
-      queryBuilder.andWhere(
-        '(attribute.name_en ILIKE :search OR attribute.name_ar ILIKE :search)',
-        { search: `%${search}%` }
-      );
+      const normalizedSearch = normalizeArabicForSearch(search);
+      
+      queryBuilder.andWhere(new Brackets(qb => {
+        // Search in English name (case-insensitive)
+        qb.where('attribute.name_en ILIKE :search', { search: `%${search}%` });
+        
+        // Search in Arabic name with normalization
+        qb.orWhere(
+          `REPLACE(REPLACE(REPLACE(attribute.name_ar, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا') ILIKE :normalizedSearch`,
+          { normalizedSearch: `%${normalizedSearch}%` }
+        );
+      }));
     }
 
     // Apply sorting

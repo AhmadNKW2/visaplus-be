@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Brackets } from 'typeorm';
 import { Country } from './entities/country.entity';
 import { CountryAttribute } from './entities/country-attribute.entity';
 import { CreateCountryDto } from './dto/create-country.dto';
@@ -8,6 +8,7 @@ import { UpdateCountryDto } from './dto/update-country.dto';
 import { ReorderCountriesDto } from './dto/reorder-countries.dto';
 import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { normalizeArabicForSearch, getSearchTermsWithAliases } from '../common/utils/arabic-search.util';
 
 @Injectable()
 export class CountriesService {
@@ -68,12 +69,23 @@ export class CountriesService {
       .leftJoinAndSelect('country.attributes', 'attributes')
       .leftJoinAndSelect('attributes.attribute', 'attribute');
 
-    // Apply search
+    // Apply search with Arabic normalization and aliases
     if (search) {
-      queryBuilder.andWhere(
-        '(countryWorld.name_en ILIKE :search OR countryWorld.name_ar ILIKE :search)',
-        { search: `%${search}%` }
-      );
+      const searchTerms = getSearchTermsWithAliases(search);
+      
+      queryBuilder.andWhere(new Brackets(qb => {
+        // Search in English name (case-insensitive)
+        qb.where('countryWorld.name_en ILIKE :search', { search: `%${search}%` });
+        
+        // Search in Arabic name with normalization
+        // Use REPLACE to normalize Arabic text in the database for comparison
+        searchTerms.forEach((term, index) => {
+          qb.orWhere(
+            `REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(countryWorld.name_ar, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا'), 'ة', 'ه'), 'ى', 'ي') ILIKE :term${index}`,
+            { [`term${index}`]: `%${normalizeArabicForSearch(term)}%` }
+          );
+        });
+      }));
     }
 
     // Apply sorting
@@ -138,6 +150,7 @@ export class CountriesService {
       }
 
       country.countryWorldId = updateCountryDto.countryWorldId;
+      (country as any).countryWorld = null;
     }
 
     await this.countriesRepository.save(country);

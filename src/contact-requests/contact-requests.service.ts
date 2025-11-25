@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, Like } from 'typeorm';
+import { Repository, Between, Like, Brackets } from 'typeorm';
 import { CreateContactRequestDto } from './dto/create-contact-request.dto';
 import { UpdateContactRequestDto } from './dto/update-contact-request.dto';
 import { FilterContactRequestDto } from './dto/filter-contact-request.dto';
 import { ContactRequest } from './entities/contact-request.entity';
 import { PaginatedResult } from '../common/interfaces/paginated-result.interface';
+import { normalizeArabicForSearch } from '../common/utils/arabic-search.util';
 
 @Injectable()
 export class ContactRequestsService {
@@ -24,25 +25,54 @@ export class ContactRequestsService {
     
     const queryBuilder = this.contactRequestsRepository.createQueryBuilder('contact_request');
 
-    // Apply search
+    // Apply search with Arabic normalization
     if (search) {
-      queryBuilder.andWhere(
-        '(contact_request.name ILIKE :search OR contact_request.phone_number ILIKE :search OR contact_request.nationality ILIKE :search OR contact_request.destination_country ILIKE :search)',
-        { search: `%${search}%` }
-      );
+      const normalizedSearch = normalizeArabicForSearch(search);
+      
+      queryBuilder.andWhere(new Brackets(qb => {
+        // Search in regular fields (case-insensitive)
+        qb.where('contact_request.name ILIKE :search', { search: `%${search}%` })
+          .orWhere('contact_request.phone_number ILIKE :search', { search: `%${search}%` })
+          .orWhere('contact_request.nationality ILIKE :search', { search: `%${search}%` })
+          .orWhere('contact_request.destination_country ILIKE :search', { search: `%${search}%` });
+        
+        // Search with Arabic normalization
+        qb.orWhere(
+          `REPLACE(REPLACE(REPLACE(contact_request.name, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا') ILIKE :normalizedSearch`,
+          { normalizedSearch: `%${normalizedSearch}%` }
+        ).orWhere(
+          `REPLACE(REPLACE(REPLACE(contact_request.nationality, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا') ILIKE :normalizedSearch`,
+          { normalizedSearch: `%${normalizedSearch}%` }
+        ).orWhere(
+          `REPLACE(REPLACE(REPLACE(contact_request.destination_country, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا') ILIKE :normalizedSearch`,
+          { normalizedSearch: `%${normalizedSearch}%` }
+        );
+      }));
     }
 
-    // Apply filters
+    // Apply filters with Arabic normalization
     if (destination_country) {
-      queryBuilder.andWhere('contact_request.destination_country ILIKE :destination_country', {
-        destination_country: `%${destination_country}%`
-      });
+      const normalizedDestination = normalizeArabicForSearch(destination_country);
+      queryBuilder.andWhere(new Brackets(qb => {
+        qb.where('contact_request.destination_country ILIKE :destination_country', {
+          destination_country: `%${destination_country}%`
+        }).orWhere(
+          `REPLACE(REPLACE(REPLACE(contact_request.destination_country, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا') ILIKE :normalizedDestination`,
+          { normalizedDestination: `%${normalizedDestination}%` }
+        );
+      }));
     }
 
     if (nationality) {
-      queryBuilder.andWhere('contact_request.nationality ILIKE :nationality', {
-        nationality: `%${nationality}%`
-      });
+      const normalizedNationality = normalizeArabicForSearch(nationality);
+      queryBuilder.andWhere(new Brackets(qb => {
+        qb.where('contact_request.nationality ILIKE :nationality', {
+          nationality: `%${nationality}%`
+        }).orWhere(
+          `REPLACE(REPLACE(REPLACE(contact_request.nationality, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا') ILIKE :normalizedNationality`,
+          { normalizedNationality: `%${normalizedNationality}%` }
+        );
+      }));
     }
 
     // Apply date range filter
