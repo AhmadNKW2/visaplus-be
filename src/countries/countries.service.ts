@@ -74,15 +74,15 @@ export class CountriesService {
       const searchTerms = getSearchTermsWithAliases(search);
       
       queryBuilder.andWhere(new Brackets(qb => {
-        // Search in English name (case-insensitive)
-        qb.where('countryWorld.name_en ILIKE :search', { search: `%${search}%` });
-        
-        // Search in Arabic name with normalization
-        // Use REPLACE to normalize Arabic text in the database for comparison
         searchTerms.forEach((term, index) => {
+          // Search in English name (case-insensitive)
+          qb.orWhere(`countryWorld.name_en ILIKE :termEn${index}`, { [`termEn${index}`]: `%${term}%` });
+          
+          // Search in Arabic name with normalization
+          // Use REPLACE to normalize Arabic text in the database for comparison
           qb.orWhere(
-            `REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(countryWorld.name_ar, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا'), 'ة', 'ه'), 'ى', 'ي') ILIKE :term${index}`,
-            { [`term${index}`]: `%${normalizeArabicForSearch(term)}%` }
+            `REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(countryWorld.name_ar, 'أ', 'ا'), 'إ', 'ا'), 'آ', 'ا'), 'ة', 'ه'), 'ى', 'ي') ILIKE :termAr${index}`,
+            { [`termAr${index}`]: `%${normalizeArabicForSearch(term)}%` }
           );
         });
       }));

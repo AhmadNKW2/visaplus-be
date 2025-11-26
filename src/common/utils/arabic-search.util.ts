@@ -23,26 +23,27 @@ export function normalizeArabicForSearch(text: string): string {
 export const COUNTRY_ALIASES: { [key: string]: string[] } = {
   'الولايات المتحدة': ['أمريكا', 'أميركا', 'امريكا', 'اميركا'],
   'المملكة المتحدة': ['بريطانيا'],
+  'United States': ['usa', 'america', 'amerka', 'us'],
+  'United Kingdom': ['uk'],
 };
 
 /**
  * Get all possible search terms for a given text, including aliases
  */
 export function getSearchTermsWithAliases(searchTerm: string): string[] {
-  const normalized = normalizeArabicForSearch(searchTerm);
-  const terms = [searchTerm, normalized];
+  const normalized = normalizeArabicForSearch(searchTerm).toLowerCase();
+  const terms = [searchTerm];
+  if (normalized !== searchTerm) terms.push(normalized);
   
   // Check if the search term matches any alias
   for (const [standard, aliases] of Object.entries(COUNTRY_ALIASES)) {
-    const normalizedAliases = aliases.map(a => normalizeArabicForSearch(a));
-    const normalizedStandard = normalizeArabicForSearch(standard);
+    const normalizedAliases = aliases.map(a => normalizeArabicForSearch(a).toLowerCase());
+    const normalizedStandard = normalizeArabicForSearch(standard).toLowerCase();
     
     if (normalizedAliases.some(alias => alias.includes(normalized)) || normalizedStandard.includes(normalized)) {
       // Add both the standard name and all its aliases
       terms.push(standard);
-      terms.push(normalizedStandard);
       terms.push(...aliases);
-      terms.push(...normalizedAliases);
     }
   }
   
