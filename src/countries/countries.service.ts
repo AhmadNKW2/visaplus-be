@@ -149,29 +149,34 @@ export class CountriesService {
         throw new ConflictException('Country with this countryWorldId already exists');
       }
 
-      country.countryWorldId = updateCountryDto.countryWorldId;
-      (country as any).countryWorld = null;
+      // Use update instead of save to avoid relation issues
+      await this.countriesRepository.update(id, { countryWorldId: updateCountryDto.countryWorldId });
     }
-
-    await this.countriesRepository.save(country);
 
     // Update attributes if provided
     if (updateCountryDto.attributes) {
-      // Remove existing attributes
-      await this.countryAttributesRepository.delete({ countryId: id });
+      for (const attr of updateCountryDto.attributes) {
+        const existingAttribute = await this.countryAttributesRepository.findOne({
+          where: { countryId: id, attributeId: attr.attributeId },
+        });
 
-      // Add new attributes
-      if (updateCountryDto.attributes.length > 0) {
-        const countryAttributes = updateCountryDto.attributes.map(attr => 
-          this.countryAttributesRepository.create({
+        if (existingAttribute) {
+          // Update existing attribute
+          existingAttribute.value_en = attr.value_en;
+          existingAttribute.value_ar = attr.value_ar;
+          existingAttribute.isActive = attr.isActive;
+          await this.countryAttributesRepository.save(existingAttribute);
+        } else {
+          // Create new attribute
+          const newAttribute = this.countryAttributesRepository.create({
             countryId: id,
             attributeId: attr.attributeId,
             value_en: attr.value_en,
             value_ar: attr.value_ar,
             isActive: attr.isActive,
-          })
-        );
-        await this.countryAttributesRepository.save(countryAttributes);
+          });
+          await this.countryAttributesRepository.save(newAttribute);
+        }
       }
     }
 

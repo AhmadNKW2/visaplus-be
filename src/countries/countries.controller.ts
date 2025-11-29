@@ -3,7 +3,7 @@ import {
   Get, 
   Post, 
   Body, 
-  Patch, 
+  Put, 
   Param, 
   Delete, 
   UseGuards,
@@ -62,7 +62,7 @@ export class CountriesController {
     };
   }
 
-  @Patch(':id')
+  @Put(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async update(@Param('id') id: string, @Body() updateCountryDto: UpdateCountryDto) {
