@@ -45,8 +45,9 @@ export class CountriesController {
   }
 
   @Get()
-  async findAll(@Query() queryDto: PaginationQueryDto) {
-    const result = await this.countriesService.findAll(queryDto);
+  async findAll(@Query() queryDto: PaginationQueryDto, @Query('simple') simple?: string) {
+    const isSimple = simple === 'true';
+    const result = await this.countriesService.findAll(queryDto, isSimple);
     return {
       ...result,
       message: 'Countries retrieved successfully'

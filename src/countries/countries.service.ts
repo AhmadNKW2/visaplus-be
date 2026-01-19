@@ -61,13 +61,17 @@ export class CountriesService {
     return this.findOne(savedCountry.id);
   }
 
-  async findAll(queryDto?: PaginationQueryDto): Promise<PaginatedResult<Country>> {
+  async findAll(queryDto?: PaginationQueryDto, simple: boolean = false): Promise<PaginatedResult<Country>> {
     const { page = 1, limit = 10, sort, search } = queryDto || {};
     
     const queryBuilder = this.countriesRepository.createQueryBuilder('country')
-      .leftJoinAndSelect('country.countryWorld', 'countryWorld')
-      .leftJoinAndSelect('country.attributes', 'attributes')
-      .leftJoinAndSelect('attributes.attribute', 'attribute');
+      .leftJoinAndSelect('country.countryWorld', 'countryWorld');
+
+    if (!simple) {
+      queryBuilder
+        .leftJoinAndSelect('country.attributes', 'attributes')
+        .leftJoinAndSelect('attributes.attribute', 'attribute');
+    }
 
     // Apply search with Arabic normalization and aliases
     if (search) {
